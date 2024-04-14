@@ -1,0 +1,3 @@
+databaseChangeLog:
+  - include:
+      file: db/migration/V20240406__init_table_email_messages.yaml

@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: V20240406__init_table_email_messages
+      author: Stanislav Bukaevsky
+      changes:
+        - createTable:
+            tableName: email_messages
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: recipient
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: text
+                  type: varchar(2048)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date_time
+                  type: timestamp
+                  defaultValueComputed: current_timestamp
+                  constraints:
+                    nullable: false
