@@ -6,14 +6,12 @@ import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.File;
-
 /**
  * Конфигурационный класс для настройки сериализации Consumer
  */
 @Configuration
 public class KafkaBeanConfiguration {
-    private static final String PATH_FILE = "src/main/resources/kafka/consumer.xml";
+    private static final String PATH_FILE = "/kafka/consumer.xml";
 
     /**
      * Этот метод настраивает сериализацию Consumer, которую парсит из файла xml
@@ -23,6 +21,7 @@ public class KafkaBeanConfiguration {
     @Bean
     @SneakyThrows
     public XML consumerXML() {
-        return new XMLDocument(new File(PATH_FILE));
+        return new XMLDocument(getClass().getResourceAsStream(PATH_FILE)
+                .readAllBytes());
     }
 }

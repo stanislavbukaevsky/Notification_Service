@@ -5,6 +5,7 @@ import com.github.stanislavbukaevsky.notificationservice.dto.EmailMessageRespons
 import com.github.stanislavbukaevsky.notificationservice.entity.EmailMessage;
 import com.github.stanislavbukaevsky.notificationservice.exception.EmailMessageNotFoundException;
 import com.github.stanislavbukaevsky.notificationservice.mapper.EmailMessageMapper;
+import com.github.stanislavbukaevsky.notificationservice.model.Comment;
 import com.github.stanislavbukaevsky.notificationservice.model.Task;
 import com.github.stanislavbukaevsky.notificationservice.repository.EmailMessageRepository;
 import com.github.stanislavbukaevsky.notificationservice.service.impl.EmailMessageServiceImpl;
@@ -34,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EmailMessageServiceTest {
     private final static Long ID = 1L;
-    private final static String RECIPIENT = "test@test.ru";
+    private final static String RECIPIENT = "stanislavbukaevsky@yandex.ru";
     private final static String TITLE = "Test header";
     private final static String TEXT = "Test text";
     private final static LocalDateTime DATE_TIME = LocalDateTime.now();
@@ -46,8 +47,8 @@ public class EmailMessageServiceTest {
     private final static Long ID_USER = 3L;
     private final static String NAME_USER = "Test name user";
     private final static String SECOND_NAME = "Test second name user";
-    private final static String PASSWORD = "Test password";
-    private final static String ROLE = "Test role";
+    private final static Long ID_COMMENT = 4L;
+    private final static String TEXT_COMMENT = "Test comment";
     @InjectMocks
     private EmailMessageServiceImpl emailMessageService;
     @Mock
@@ -60,6 +61,7 @@ public class EmailMessageServiceTest {
     private EmailMessageResponseDto response;
     private EmailMessageRequestDto request;
     private Task task;
+    private Comment comment;
 
     @BeforeAll
     public void setUp() {
@@ -89,9 +91,15 @@ public class EmailMessageServiceTest {
                 .idUser(ID_USER)
                 .nameUser(NAME_USER)
                 .secondName(SECOND_NAME)
-                .email(RECIPIENT)
-                .password(PASSWORD)
-                .role(ROLE).build();
+                .email(RECIPIENT).build();
+        comment = Comment.builder()
+                .idComment(ID_COMMENT)
+                .textComment(TEXT_COMMENT)
+                .taskId(ID_TASK)
+                .idUser(ID_USER)
+                .nameUser(NAME_USER)
+                .secondName(SECOND_NAME)
+                .email(RECIPIENT).build();
     }
 
     @BeforeEach
@@ -118,7 +126,7 @@ public class EmailMessageServiceTest {
                 .thenReturn(response);
 
         EmailMessageResponseDto actual = emailMessageService.sendEmail(request);
-        org.assertj.core.api.Assertions.assertThat(actual.getId()).isEqualTo(emailMessage.getId());
+        org.assertj.core.api.Assertions.assertThat(actual.id()).isEqualTo(emailMessage.getId());
     }
 
     @Test
@@ -129,8 +137,8 @@ public class EmailMessageServiceTest {
     }
 
     @Test
-    @DisplayName("Отправка уведомления на электронную почту с приминением Kafka")
-    public void sendEmail_shouldReturnResponseKafka() {
+    @DisplayName("Отправка уведомления на электронную почту о созданной задачи с приминением Kafka")
+    public void sendEmail_shouldReturnResponseTaskKafka() {
         Assertions.assertNotNull(emailMessageRepository);
         Mockito.lenient().when(emailMessageMapper
                         .mappingEntityEmailMessage(ArgumentMatchers.any(Task.class)))
@@ -148,8 +156,6 @@ public class EmailMessageServiceTest {
         Assertions.assertEquals(task.getNameUser(), NAME_USER);
         Assertions.assertEquals(task.getSecondName(), SECOND_NAME);
         Assertions.assertEquals(task.getEmail(), RECIPIENT);
-        Assertions.assertEquals(task.getPassword(), PASSWORD);
-        Assertions.assertEquals(task.getRole(), ROLE);
     }
 
     @Test
@@ -157,5 +163,25 @@ public class EmailMessageServiceTest {
     public void sendEmail_ifModelNull_thenThrow() {
         assertThrows(EmailMessageNotFoundException.class, () ->
                 emailMessageService.sendEmail((Task) null));
+    }
+
+    @Test
+    @DisplayName("Отправка уведомления на электронную почту о созданном комментарии с приминением Kafka")
+    public void sendEmail_shouldReturnResponseCommentKafka() {
+        Assertions.assertNotNull(emailMessageRepository);
+        Mockito.lenient().when(emailMessageMapper
+                        .mappingEntityEmailMessage(ArgumentMatchers.any(Comment.class)))
+                .thenReturn(emailMessage);
+        Mockito.lenient().when(emailMessageRepository.save(ArgumentMatchers.any(EmailMessage.class)))
+                .thenReturn(emailMessage);
+
+        emailMessageService.sendEmail(comment);
+        Assertions.assertEquals(comment.getIdComment(), ID_COMMENT);
+        Assertions.assertEquals(comment.getTextComment(), TEXT_COMMENT);
+        Assertions.assertEquals(comment.getTaskId(), ID_TASK);
+        Assertions.assertEquals(comment.getIdUser(), ID_USER);
+        Assertions.assertEquals(comment.getNameUser(), NAME_USER);
+        Assertions.assertEquals(comment.getSecondName(), SECOND_NAME);
+        Assertions.assertEquals(comment.getEmail(), RECIPIENT);
     }
 }

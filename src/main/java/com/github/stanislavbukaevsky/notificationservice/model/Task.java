@@ -43,21 +43,17 @@ public class Task {
     private String secondName;
     @Schema(description = "Электронная почта пользователя")
     private String email;
-    @Schema(description = "Пароль пользователя")
-    private String password;
-    @Schema(description = "Роль пользователя")
-    private String role;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Task task = (Task) o;
-        return Objects.equals(idTask, task.idTask) && Objects.equals(nameTask, task.nameTask) && Objects.equals(description, task.description) && Objects.equals(dateTimeCreatedTask, task.dateTimeCreatedTask) && Objects.equals(priority, task.priority) && Objects.equals(status, task.status) && Objects.equals(idUser, task.idUser) && Objects.equals(nameUser, task.nameUser) && Objects.equals(secondName, task.secondName) && Objects.equals(email, task.email) && Objects.equals(password, task.password) && Objects.equals(role, task.role);
+        return Objects.equals(idTask, task.idTask) && Objects.equals(nameTask, task.nameTask) && Objects.equals(description, task.description) && Objects.equals(dateTimeCreatedTask, task.dateTimeCreatedTask) && Objects.equals(priority, task.priority) && Objects.equals(status, task.status) && Objects.equals(idUser, task.idUser) && Objects.equals(nameUser, task.nameUser) && Objects.equals(secondName, task.secondName) && Objects.equals(email, task.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(idTask, nameTask, description, dateTimeCreatedTask, priority, status, idUser, nameUser, secondName, email, password, role);
+        return Objects.hash(idTask, nameTask, description, dateTimeCreatedTask, priority, status, idUser, nameUser, secondName, email);
     }
 }

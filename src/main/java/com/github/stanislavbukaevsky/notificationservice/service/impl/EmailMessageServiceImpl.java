@@ -3,8 +3,8 @@ package com.github.stanislavbukaevsky.notificationservice.service.impl;
 import com.github.stanislavbukaevsky.notificationservice.dto.EmailMessageRequestDto;
 import com.github.stanislavbukaevsky.notificationservice.dto.EmailMessageResponseDto;
 import com.github.stanislavbukaevsky.notificationservice.entity.EmailMessage;
-import com.github.stanislavbukaevsky.notificationservice.exception.EmailMessageNotFoundException;
 import com.github.stanislavbukaevsky.notificationservice.mapper.EmailMessageMapper;
+import com.github.stanislavbukaevsky.notificationservice.model.Comment;
 import com.github.stanislavbukaevsky.notificationservice.model.Task;
 import com.github.stanislavbukaevsky.notificationservice.repository.EmailMessageRepository;
 import com.github.stanislavbukaevsky.notificationservice.service.EmailMessageService;
@@ -19,10 +19,12 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 
-import static com.github.stanislavbukaevsky.notificationservice.constant.DescriptionTextMessageConstant.SEND_EMAIL_TEXT_MESSAGE_DESCRIPTION;
-import static com.github.stanislavbukaevsky.notificationservice.constant.DescriptionTextMessageConstant.SEND_EMAIL_TEXT_MESSAGE_DESCRIPTION_2;
+import static com.github.stanislavbukaevsky.notificationservice.constant.DescriptionTextMessageConstant.SEND_EMAIL_COMMENT_TEXT_MESSAGE_DESCRIPTION;
+import static com.github.stanislavbukaevsky.notificationservice.constant.DescriptionTextMessageConstant.SEND_EMAIL_TASK_TEXT_MESSAGE_DESCRIPTION;
+import static com.github.stanislavbukaevsky.notificationservice.constant.DescriptionTextMessageConstant.SEND_EMAIL_TEST_TEXT_MESSAGE_DESCRIPTION;
+import static com.github.stanislavbukaevsky.notificationservice.constant.DescriptionTextMessageConstant.SEND_EMAIL_TEST_TITLE_MESSAGE_DESCRIPTION;
 import static com.github.stanislavbukaevsky.notificationservice.constant.DescriptionTextMessageConstant.SEND_EMAIL_TITLE_MESSAGE_DESCRIPTION;
-import static com.github.stanislavbukaevsky.notificationservice.constant.ExceptionTextMessageConstant.EMAIL_MESSAGE_NOT_FOUND_EXCEPTION_MESSAGE;
+import static com.github.stanislavbukaevsky.notificationservice.constant.DescriptionTextMessageConstant.SEND_EMAIL_USER_TEXT_MESSAGE_DESCRIPTION;
 import static com.github.stanislavbukaevsky.notificationservice.constant.LoggerTextMessageConstant.SEND_EMAIL_MESSAGE_LOGGER_SERVICE;
 
 /**
@@ -48,16 +50,13 @@ public class EmailMessageServiceImpl implements EmailMessageService {
      */
     @Override
     public EmailMessageResponseDto sendEmail(@Valid EmailMessageRequestDto request) {
-        if (request == null) {
-            throw new EmailMessageNotFoundException(EMAIL_MESSAGE_NOT_FOUND_EXCEPTION_MESSAGE);
-        }
+        checkRequest(request);
 
         LocalDateTime dateTime = LocalDateTime.now();
         EmailMessage emailMessage = emailMessageMapper.mappingEntityEmailMessage(request);
-        emailMessage.setRecipient(request.getRecipient());
-        emailMessage.setTitle(SEND_EMAIL_TITLE_MESSAGE_DESCRIPTION);
-        emailMessage.setText(SEND_EMAIL_TEXT_MESSAGE_DESCRIPTION + request.getRecipient() +
-                SEND_EMAIL_TEXT_MESSAGE_DESCRIPTION_2 + "тестовая задача.");
+        emailMessage.setTitle(SEND_EMAIL_TEST_TITLE_MESSAGE_DESCRIPTION);
+        emailMessage.setText(SEND_EMAIL_USER_TEXT_MESSAGE_DESCRIPTION + request.recipient() +
+                SEND_EMAIL_TEST_TEXT_MESSAGE_DESCRIPTION);
 
         sendEmail(dateTime, emailMessage);
         EmailMessage result = emailMessageRepository.save(emailMessage);
@@ -73,20 +72,39 @@ public class EmailMessageServiceImpl implements EmailMessageService {
      */
     @Override
     public void sendEmail(Task task) {
-        if (task == null) {
-            throw new EmailMessageNotFoundException(EMAIL_MESSAGE_NOT_FOUND_EXCEPTION_MESSAGE);
-        }
+        checkRequest(task);
 
         LocalDateTime dateTime = LocalDateTime.now();
         EmailMessage emailMessage = emailMessageMapper.mappingEntityEmailMessage(task);
-        emailMessage.setRecipient(emailMessage.getRecipient());
         emailMessage.setTitle(SEND_EMAIL_TITLE_MESSAGE_DESCRIPTION);
-        emailMessage.setText(SEND_EMAIL_TEXT_MESSAGE_DESCRIPTION + task.getNameUser() +
-                " " + task.getSecondName() + SEND_EMAIL_TEXT_MESSAGE_DESCRIPTION_2 + task.getEmail());
+        emailMessage.setText(SEND_EMAIL_USER_TEXT_MESSAGE_DESCRIPTION + task.getNameUser() +
+                " " + task.getSecondName() + SEND_EMAIL_TASK_TEXT_MESSAGE_DESCRIPTION + task.getNameTask());
 
         sendEmail(dateTime, emailMessage);
         emailMessageRepository.save(emailMessage);
         log.info(SEND_EMAIL_MESSAGE_LOGGER_SERVICE, task);
+    }
+
+    /**
+     * Реализация перегруженного метода для отправки уведомления на электронную почту пользователя.
+     * Информацию по созданному комментарию метод берет из брокера Kafka.
+     *
+     * @param comment модель созданного комментария
+     */
+    @Override
+    public void sendEmail(Comment comment) {
+        checkRequest(comment);
+
+        LocalDateTime dateTime = LocalDateTime.now();
+        EmailMessage emailMessage = emailMessageMapper.mappingEntityEmailMessage(comment);
+        emailMessage.setTitle(SEND_EMAIL_TITLE_MESSAGE_DESCRIPTION);
+        emailMessage.setText(SEND_EMAIL_USER_TEXT_MESSAGE_DESCRIPTION + comment.getNameUser() +
+                " " + comment.getSecondName() + SEND_EMAIL_COMMENT_TEXT_MESSAGE_DESCRIPTION +
+                comment.getTextComment());
+
+        sendEmail(dateTime, emailMessage);
+        emailMessageRepository.save(emailMessage);
+        log.info(SEND_EMAIL_MESSAGE_LOGGER_SERVICE, comment);
     }
 
     private void sendEmail(LocalDateTime dateTime, EmailMessage emailMessage) {

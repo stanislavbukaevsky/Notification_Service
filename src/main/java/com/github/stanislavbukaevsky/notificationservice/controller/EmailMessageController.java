@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/email-message")
+@RequestMapping("/notifications/api/notification")
 @Validated
 @Tag(name = "Работа с уведомлениями по электронной почте",
         description = "Позволяет управлять методами по работе с отправкой уведомления на электронную почту в приложении")

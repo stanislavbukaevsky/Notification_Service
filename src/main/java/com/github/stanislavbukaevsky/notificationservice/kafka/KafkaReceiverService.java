@@ -5,5 +5,5 @@ package com.github.stanislavbukaevsky.notificationservice.kafka;
  * В этом интерфейсе прописана только сигнатура методов без реализации
  */
 public interface KafkaReceiverService {
-    void accept();
+    void acceptTask();
 }
